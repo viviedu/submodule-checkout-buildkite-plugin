@@ -1,0 +1,16 @@
+name: Submodule Checkout
+description: "A plugin to checkout only specified submodules of the target repository"
+author: viviedu
+requirements:
+ - bash
+configuration:
+  properties:
+    checkouts:
+      type: array
+      items:
+        type: string
+      description: "git submodule checkout commands"
+  additionalProperties: false
+hooks:
+  pre-checkout: hooks/pre-checkout
+  checkout: hooks/checkout

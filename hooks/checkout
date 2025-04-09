@@ -1,0 +1,36 @@
+#!/bin/bash
+set -euo pipefail
+
+echo "--- cloning repo into $BUILDKITE_BUILD_CHECKOUT_PATH"
+
+cd /
+rm -rf "$BUILDKITE_BUILD_CHECKOUT_PATH" || true
+git clone \
+  --branch="$BUILDKITE_BRANCH" \
+  "$BUILDKITE_REPO" \
+  "$BUILDKITE_BUILD_CHECKOUT_PATH"
+
+cd "$BUILDKITE_BUILD_CHECKOUT_PATH"
+
+echo "--- checking out commit $BUILDKITE_COMMIT"
+git checkout -f "$BUILDKITE_COMMIT"
+
+index=0
+while true; do
+  var_name="BUILDKITE_PLUGIN_SUBMODULE_CHECKOUT_CHECKOUTS_${index}"
+  checkout_command="${!var_name-}"
+  if [ -z "$checkout_command" ]; then
+    echo "--- submodule checkout complete"
+    break
+  fi
+
+  echo "--- ${checkout_command}"
+  eval "$checkout_command"
+
+  if [ $? -ne 0 ]; then
+    echo "Error: Failed to update submodule: '${checkout_command}'" >&2
+    exit 1
+  fi
+
+  index=$((index + 1))
+done
